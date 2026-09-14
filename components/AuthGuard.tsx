@@ -23,13 +23,18 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   if (user && !isAuthorized) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 text-center">
-        <div>
-          <p className="text-2xl mb-2">🔒</p>
-          <p className="text-red-600 font-semibold">Access denied.</p>
-          <p className="text-gray-500 text-sm mt-1">
-            Your account ({user.email}) is not authorised.
-            Contact the administrator.
+        <div className="bg-white rounded-2xl shadow-sm border border-red-100 p-8 max-w-sm">
+          <p className="text-3xl mb-2">🔒</p>
+          <p className="text-red-600 font-semibold text-lg">Access Denied</p>
+          <p className="text-gray-500 text-sm mt-2">
+            Your account ({user.email}) is not authorized in NEXT_PUBLIC_ALLOWED_EMAILS or the database allowed_emails table.
           </p>
+          <button
+            onClick={() => router.push('/login')}
+            className="mt-5 inline-block text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors"
+          >
+            Switch Account / Sign In
+          </button>
         </div>
       </div>
     );

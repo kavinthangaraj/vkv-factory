@@ -9,7 +9,7 @@ import {
 } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/firebase';
-import { ALLOWED_EMAILS } from '@/lib/constants';
+import { ALLOWED_EMAILS, isEmailAllowed } from '@/lib/constants';
 
 interface AuthCtx {
   user: User | null;
@@ -51,8 +51,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const sendOTP = async (email: string): Promise<{ error: string | null }> => {
     const trimmed = email.trim().toLowerCase();
 
-    // Block unauthorised emails before even sending OTP
-    if (ALLOWED_EMAILS.length > 0 && !ALLOWED_EMAILS.map(e => e.toLowerCase()).includes(trimmed)) {
+    // Block if no allowed emails are configured (fail-closed) or if email not whitelisted
+    if (ALLOWED_EMAILS.length === 0) {
+      return { error: 'Access closed: No administrator emails configured in NEXT_PUBLIC_ALLOWED_EMAILS.' };
+    }
+    if (!isEmailAllowed(trimmed)) {
       return { error: 'This email is not authorised to access this system.' };
     }
 
@@ -77,10 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   };
 
-  const isAuthorized =
-    user !== null &&
-    (ALLOWED_EMAILS.length === 0 ||
-      ALLOWED_EMAILS.map(e => e.toLowerCase()).includes((user.email ?? '').toLowerCase()));
+  const isAuthorized = user !== null && isEmailAllowed(user.email);
 
   return (
     <AuthContext.Provider value={{ user, loading, isAuthorized, sendOTP, verifyOTP, signOut }}>

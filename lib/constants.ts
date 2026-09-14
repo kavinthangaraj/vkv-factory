@@ -32,9 +32,22 @@ export function getCategoryForPurpose(purposeLabel: string): string {
   return PETTY_CASH_PURPOSES.find((p) => p.label === purposeLabel)?.category ?? 'Other';
 }
 
-// Allowed admin emails — loaded from env, fallback to empty (allows all)
+// Allowed admin emails — loaded from env.
+// For security, an empty or missing list FAILS CLOSED in production.
 export const ALLOWED_EMAILS: string[] =
   (process.env.NEXT_PUBLIC_ALLOWED_EMAILS ?? '')
     .split(',')
-    .map((e) => e.trim())
+    .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
+
+/**
+ * Checks whether an email address is configured as an allowed administrator.
+ * Security requirement: empty or missing configuration fails closed (returns false).
+ */
+export function isEmailAllowed(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const trimmed = email.trim().toLowerCase();
+  if (!trimmed) return false;
+  if (ALLOWED_EMAILS.length === 0) return false; // Fail closed!
+  return ALLOWED_EMAILS.includes(trimmed);
+}

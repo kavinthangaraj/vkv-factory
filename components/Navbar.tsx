@@ -5,9 +5,10 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from './AuthProvider';
 
 const NAV = [
-  { href: '/',           label: '🏠 Dashboard' },
-  { href: '/purchase',   label: '📋 Purchases' },
-  { href: '/petty-cash', label: '💰 Petty Cash' },
+  { href: '/',            label: '🏠 Dashboard' },
+  { href: '/purchase',    label: '📋 Purchases' },
+  { href: '/petty-cash',  label: '💰 Petty Cash' },
+  { href: '/cash-ledger', label: '📒 Cash Ledger' },
 ];
 
 export function Navbar() {

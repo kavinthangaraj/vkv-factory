@@ -8,6 +8,7 @@ import { PhotoUpload } from '@/components/PhotoUpload';
 import { addPettyCashBatch, type PettyCashLineItem } from '@/lib/firestore';
 import { uploadPhoto } from '@/lib/storage';
 import { OFFICES, PETTY_CASH_PURPOSES, getCategoryForPurpose } from '@/lib/constants';
+import { getTodayIST } from '@/lib/dateUtils';
 import type { Office } from '@/types';
 
 interface LineItemForm {
@@ -29,9 +30,8 @@ const emptyItem = (): LineItemForm => ({
 export default function NewPettyCashPage() {
   const router = useRouter();
 
-  // Date defaults to today's date in YYYY-MM-DD format
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const [date, setDate]       = useState<string>(todayStr);
+  // Date defaults to today's date in IST
+  const [date, setDate]       = useState<string>(getTodayIST());
   const [office, setOffice]   = useState<Office | ''>('VKV');
   const [items, setItems]     = useState<LineItemForm[]>([emptyItem()]);
 
@@ -341,7 +341,7 @@ export default function NewPettyCashPage() {
       <style jsx global>{`
         .label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem; }
         .input { width: 100%; border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; color: #111827; background: #fff; outline: none; }
-        .input:focus { border-color: #10b981; box-shadow: 0 0 0 2px rgba(16,185,129,0.2); }
+        .input:focus { border-color: #10b981; box-box-shadow: 0 0 0 2px rgba(16,185,129,0.2); }
       `}</style>
     </AuthGuard>
   );

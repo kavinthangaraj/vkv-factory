@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { AuthGuard } from '@/components/AuthGuard';
@@ -44,15 +44,27 @@ function fmtDate(d: Date) {
 }
 
 export default function Dashboard() {
-  const [stats, setStats]     = useState<Stats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats]         = useState<Stats | null>(null);
+  const [loading, setLoading]     = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const fetchStats = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const s = await getDashboardStats();
+      setStats(s as Stats);
+    } catch (err: unknown) {
+      console.error(err);
+      setLoadError(err instanceof Error ? err.message : 'Failed to load dashboard stats.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    getDashboardStats()
-      .then((s) => setStats(s as Stats))
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+    fetchStats();
+  }, [fetchStats]);
 
   return (
     <AuthGuard>
@@ -87,7 +99,23 @@ export default function Dashboard() {
         </div>
 
         {loading && (
-          <p className="text-center text-gray-400 py-8">Loading stats…</p>
+          <div className="text-center py-12">
+            <div className="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+            <p className="text-center text-gray-500 text-sm">Loading dashboard stats…</p>
+          </div>
+        )}
+
+        {loadError && !loading && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center my-4">
+            <p className="text-red-700 font-semibold mb-1">Failed to load dashboard stats</p>
+            <p className="text-gray-600 text-xs mb-4">{loadError}</p>
+            <button
+              onClick={fetchStats}
+              className="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors"
+            >
+              Retry
+            </button>
+          </div>
         )}
 
         {stats && (
