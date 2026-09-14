@@ -9,14 +9,13 @@ import {
 } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/firebase';
-import { ALLOWED_EMAILS, isEmailAllowed } from '@/lib/constants';
+import { isEmailAllowed } from '@/lib/constants';
 
 interface AuthCtx {
   user: User | null;
   loading: boolean;
   isAuthorized: boolean;
-  sendOTP: (email: string) => Promise<{ error: string | null }>;
-  verifyOTP: (email: string, token: string) => Promise<{ error: string | null }>;
+  signInWithAccessCode: (code: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -24,8 +23,7 @@ const AuthContext = createContext<AuthCtx>({
   user: null,
   loading: true,
   isAuthorized: false,
-  sendOTP: async () => ({ error: null }),
-  verifyOTP: async () => ({ error: null }),
+  signInWithAccessCode: async () => ({ error: null }),
   signOut: async () => {},
 });
 
@@ -48,30 +46,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const sendOTP = async (email: string): Promise<{ error: string | null }> => {
-    const trimmed = email.trim().toLowerCase();
-
-    // Block if no allowed emails are configured (fail-closed) or if email not whitelisted
-    if (ALLOWED_EMAILS.length === 0) {
-      return { error: 'Access closed: No administrator emails configured in NEXT_PUBLIC_ALLOWED_EMAILS.' };
-    }
-    if (!isEmailAllowed(trimmed)) {
-      return { error: 'This email is not authorised to access this system.' };
-    }
-
-    const { error } = await supabase.auth.signInWithOtp({
-      email: trimmed,
-      options: { shouldCreateUser: true },
-    });
-
-    return { error: error?.message ?? null };
-  };
-
-  const verifyOTP = async (email: string, token: string): Promise<{ error: string | null }> => {
-    const { error } = await supabase.auth.verifyOtp({
-      email: email.trim().toLowerCase(),
-      token: token.trim(),
-      type: 'email',
+  const signInWithAccessCode = async (code: string): Promise<{ error: string | null }> => {
+    const sharedEmail = process.env.NEXT_PUBLIC_SHARED_AUTH_EMAIL!;
+    const { error } = await supabase.auth.signInWithPassword({
+      email: sharedEmail,
+      password: code.trim(),
     });
     return { error: error?.message ?? null };
   };
@@ -83,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAuthorized = user !== null && isEmailAllowed(user.email);
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAuthorized, sendOTP, verifyOTP, signOut }}>
+    <AuthContext.Provider value={{ user, loading, isAuthorized, signInWithAccessCode, signOut }}>
       {children}
     </AuthContext.Provider>
   );

@@ -41,9 +41,10 @@ The system digitises purchase approvals (chemicals, firewood, spare parts, elect
 - Error handling with retry on data load failures.
 
 ### 4. Zero-Friction Authentication
-- Email OTP login via Supabase Auth — no OAuth popups, no complex passwords, no Google 2FA issues.
-- Whitelist protection: Only configured administrator email IDs can access the system.
-- **Database-level authorization:** RLS policies enforce allowed-email access at the Supabase level, not just in the UI.
+- Single shared access-code login for the factory office.
+- The login screen uses a configured Supabase Auth account behind the scenes.
+- Whitelist protection: only allowed users can access the system.
+- **Database-level authorization:*** RLS policies enforce allowed-email access at the Supabase level, not just in the UI.
 
 ### 5. India Standard Time (IST) Date Handling
 - All dates use explicit IST timezone logic — no UTC midnight boundary bugs.
@@ -62,6 +63,7 @@ The system digitises purchase approvals (chemicals, firewood, spare parts, elect
 - **Database:** [Supabase](https://supabase.com/) (PostgreSQL with Row Level Security)
 - **Storage:** Supabase Storage (**Private** bucket with signed URLs)
 - **Auth:** Supabase Passwordless OTP Authentication
+- **Auth (login UX):** Shared access-code sign-in backed by Supabase Auth
 
 ---
 
@@ -71,7 +73,7 @@ The system digitises purchase approvals (chemicals, firewood, spare parts, elect
 ├── app/
 │   ├── layout.tsx              # Root layout with AuthProvider
 │   ├── page.tsx                # Factory Owner Dashboard
-│   ├── login/page.tsx          # Email OTP Sign-in page
+│   ├── login/page.tsx          # Access-code sign-in page
 │   ├── purchase/
 │   │   ├── page.tsx            # Purchase list with edit/delete/status filters
 │   │   └── new/page.tsx        # Log purchase with bill/chit photo
@@ -176,8 +178,10 @@ This application is optimised for 1-click deployment on [Vercel](https://vercel.
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `NEXT_PUBLIC_ALLOWED_EMAILS`
+   - `NEXT_PUBLIC_SHARED_AUTH_EMAIL`
 3. Click **Deploy**.
 4. In Supabase Dashboard → **Authentication → URL Configuration**, add your Vercel URL (e.g. `https://your-app.vercel.app`) to **Redirect URLs**.
+5. In Supabase Dashboard → **Authentication → Users**, create or reset the shared auth user for `NEXT_PUBLIC_SHARED_AUTH_EMAIL`. The chosen password becomes the shared access code used on the login screen.
 
 ---
 
